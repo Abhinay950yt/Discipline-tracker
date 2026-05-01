@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 Discipline Tracker — 180 Days</title>
+
+<!-- SheetJS for Excel export -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   ROOT & RESET
+═══════════════════════════════════════════════════════════ */
+:root {
+  --bg-primary:    #0a0a0f;
+  --bg-secondary:  #111118;
+  --bg-card:       #16161f;
+  --bg-card2:      #1c1c28;
+  --border:        #2a2a3d;
+  --border-bright: #3d3d5c;
+
+  --gold:    #ffd700;
+  --gold2:   #ffaa00;
+  --green:   #00e676;
+  --green2:  #00c853;
+  --red:     #ff1744;
+  --red2:    #d50000;
+  --cyan:    #00e5ff;
+  --blue:    #2979ff;
+  --purple:  #aa00ff;
+  --orange:  #ff6d00;
+  --yellow:  #ffd740;
+  --pink:    #f50057;
+  --lime:    #76ff03;
+
+  --text-primary:   #f0f0ff;
+  --text-secondary: #9090b0;
+  --text-muted:     #5a5a7a;
+
+  --radius:    12px;
+  --radius-lg: 20px;
+  --shadow:    0 8px 32px rgba(0,0,0,0.5);
+  --shadow-lg: 0 16px 64px rgba(0,0,0,0.7);
+
+  --font-main: 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+
+  --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-main);
+  background:  var(--bg-primary);
+  color:       var(--text-primary);
+  min-height:  100vh;
+  overflow-x:  hidden;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb {
+  background: var(--border-bright);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ═══════════════════════════════════════════════════════════
+   ANIMATED BACKGROUND
+═══════════════════════════════════════════════════════════ */
+.bg-stars {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(41,121,255,.05) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(170,0,255,.05) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 80%, rgba(0,229,255,.04) 0%, transparent 60%);
+}
+.bg-grid {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: .18;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════════════════ */
+.wrapper {
+  position: relative; z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 16px 60px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HEADER / HERO
+═══════════════════════════════════════════════════════════ */
+.hero {
+  text-align: center;
+  padding: 48px 20px 36px;
+  position: relative;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg,rgba(255,215,0,.1),rgba(255,100,0,.1));
+  border: 1px solid rgba(255,215,0,.25);
+  border-radius: 100px;
+  padding: 6px 18px;
+  font-size: .78rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 20px;
+  animation: fadeInDown .6s ease;
+}
+.hero-title {
+  font-size: clamp(2rem, 6vw, 4rem);
+  font-weight: 900; letter-spacing: -.02em;
+  background: linear-gradient(135deg, var(--gold), var(--orange), var(--red));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1; margin-bottom: 12px;
+  animation: fadeInDown .7s ease;
+}
+.hero-sub {
+  font-size: 1rem; color: var(--text-secondary);
+  animation: fadeInDown .8s ease;
+}
+.hero-flame {
+  font-size: 3rem;
+  animation: flicker 2s infinite alternate;
+  display: inline-block;
+}
+@keyframes flicker {
+  0%   { text-shadow: 0 0 10px #f90, 0 0 30px #f50; transform: scale(1); }
+  100% { text-shadow: 0 0 20px #ff0, 0 0 60px #f80; transform: scale(1.05); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NAV TABS
+═══════════════════════════════════════════════════════════ */
+.nav-tabs {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center;
+  padding: 0 0 28px;
+  animation: fadeInUp .6s ease;
+}
+.tab-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--text-secondary);
+  cursor: pointer; font-size: .88rem; font-weight: 600;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(255,215,0,.06);
+  transform: translateY(-2px);
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, rgba(255,215,0,.15), rgba(255,100,0,.1));
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 20px rgba(255,215,0,.2);
+}
+.tab-icon { font-size: 1rem; }
+
+/* ═══════════════════════════════════════════════════════════
+   PAGES
+═══════════════════════════════════════════════════════════ */
+.page { display: none; animation: fadeIn .4s ease; }
+.page.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeInDown {
+  from { opacity:0; transform:translateY(-16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════════════════════ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+.card:hover { border-color: var(--border-bright); }
+.card-title {
+  font-size: 1rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title span { color: var(--gold); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 16px; }
+
+@media(max-width:900px) {
+  .grid-4 { grid-template-columns: repeat(2,1fr); }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width:600px) {
+  .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KPI STAT CARDS
+═══════════════════════════════════════════════════════════ */
+.kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  text-align: center;
+  position: relative; overflow: hidden;
+  transition: var(--transition);
+}
+.kpi::before {
+  content:'';
+  position:absolute; inset:0;
+  background: var(--kpi-glow,rgba(255,215,0,.03));
+  pointer-events:none;
+}
+.kpi:hover { transform:translateY(-4px); box-shadow: var(--shadow-lg); }
+.kpi-icon  { font-size: 2rem; margin-bottom: 10px; display:block; }
+.kpi-value {
+  font-size: 2.2rem; font-weight: 900;
+  color: var(--kpi-color, var(--gold));
+  line-height: 1;
+}
+.kpi-label {
+  font-size: .78rem; text-transform:uppercase;
+  letter-spacing:.1em; color:var(--text-muted);
+  margin-top: 6px;
+}
+.kpi-sub {
+  font-size: .82rem; color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROGRESS BAR
+═══════════════════════════════════════════════════════════ */
+.progress-wrap { margin: 8px 0; }
+.progress-label {
+  display:flex; justify-content:space-between;
+  font-size:.82rem; color:var(--text-secondary);
+  margin-bottom:6px;
+}
+.progress-track {
+  height:10px; background:var(--bg-card2);
+  border-radius:100px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; border-radius:100px;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  transition: width 1s cubic-bezier(.4,0,.2,1);
+  position:relative;
+}
+.progress-fill::after {
+  content:'';
+  position:absolute; right:0; top:0; bottom:0; width:4px;
+  background: rgba(255,255,255,.6);
+  border-radius:100px;
+}
+.progress-fill.green  { background: linear-gradient(90deg,#00c853,#00e676); }
+.progress-fill.yellow { background: linear-gradient(90deg,#ff8f00,#ffd740); }
+.progress-fill.red    { background: linear-gradient(90deg,#b71c1c,#ff1744); }
+.progress-fill.gold   { background: linear-gradient(90deg,#e65100,#ffd700); }
+
+/* ═══════════════════════════════════════════════════════════
+   HERO JOURNEY BAR  (big one at top of dashboard)
+═══════════════════════════════════════════════════════════ */
+.journey-bar-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 24px;
+}
+.journey-bar-header {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom: 16px;
+}
+.journey-bar-title { font-size:1.1rem; font-weight:700; }
+.journey-bar-pct {
+  font-size:2rem; font-weight:900;
+  background: linear-gradient(135deg,var(--gold),var(--orange));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.journey-track {
+  height:24px; background:var(--bg-card2);
+  border-radius:100px; overflow:hidden;
+  position:relative;
+}
+.journey-fill {
+  height:100%; border-radius:100px;
+  background: linear-gradient(90deg,#ff6d00,#ffd700,#00e676);
+  transition: width 1.5s cubic-bezier(.4,0,.2,1);
+  display:flex; align-items:center; justify-content:flex-end;
+  padding-right:10px;
+}
+.journey-fill-text {
+  color:#000; font-size:.7rem; font-weight:700; white-space:nowrap;
+}
+.journey-milestones {
+  display:flex; justify-content:space-between;
+  margin-top:10px;
+}
+.milestone {
+  font-size:.7rem; color:var(--text-muted);
+  text-align:center; position:relative;
+}
+.milestone::before {
+  content:'│';
+  display:block; color:var(--border-bright);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HABIT TOGGLE GRID (Daily Entry)
+═══════════════════════════════════════════════════════════ */
+.habit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+  gap: 14px;
+}
+.habit-toggle {
+  display:flex; align-items:center; gap:14px;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+  position: relative; overflow: hidden;
+}
+.habit-toggle::before {
+  content:'';
+  position:absolute; inset:0;
+  background: var(--habit-glow, transparent);
+  pointer-events:none;
+  transition: var(--transition);
+}
+.habit-toggle:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-2px);
+}
+.habit-toggle.done {
+  border-color: var(--green);
+  background: rgba(0,230,118,.07);
+  --habit-glow: rgba(0,230,118,.05);
+}
+.habit-toggle.done .habit-check {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000;
+}
+.habit-emoji { font-size: 1.6rem; flex-shrink:0; }
+.habit-info  { flex:1; min-width:0; }
+.habit-name  { font-weight:600; font-size:.92rem; }
+.habit-sub   { font-size:.75rem; color:var(--text-muted); margin-top:2px; }
+.habit-check {
+  width:28px; height:28px; flex-shrink:0;
+  border-radius:50%;
+  border: 2px solid var(--border-bright);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.9rem; font-weight:700;
+  transition: var(--transition);
+  color: transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DAILY ENTRY FORM
+═══════════════════════════════════════════════════════════ */
+.entry-header {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:16px;
+  margin-bottom:28px;
+}
+.date-picker-wrap {
+  display:flex; align-items:center; gap:10px;
+}
+.date-input {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size:.92rem; padding:10px 16px;
+  outline:none; cursor:pointer;
+  transition: var(--transition);
+  font-family: var(--font-main);
+}
+.date-input:focus, .date-input:hover {
+  border-color: var(--gold);
+}
+.score-live {
+  display:flex; flex-direction:column; align-items:flex-end;
+}
+.score-live-num {
+  font-size:2.5rem; font-weight:900; line-height:1;
+  background: linear-gradient(135deg,var(--gold),var(--orange));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.score-live-label { font-size:.75rem; color:var(--text-muted); }
+
+.reflection-wrap { margin-top:24px; }
+.reflection-wrap label {
+  display:block; font-size:.85rem; font-weight:600;
+  color:var(--text-secondary); margin-bottom:8px;
+}
+.reflection-input {
+  width:100%; min-height:100px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-main); font-size:.9rem;
+  padding:14px 16px; resize:vertical; outline:none;
+  transition: var(--transition);
+}
+.reflection-input:focus { border-color: var(--gold); }
+
+/* ═══════════════════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════════════════ */
+.btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:12px 28px;
+  border:none; border-radius:100px;
+  font-size:.9rem; font-weight:700;
+  cursor:pointer; transition:var(--transition);
+  letter-spacing:.04em;
+  text-decoration:none;
+}
+.btn-primary {
+  background: linear-gradient(135deg,var(--gold),var(--orange));
+  color:#000;
+  box-shadow: 0 4px 20px rgba(255,215,0,.25);
+}
+.btn-primary:hover {
+  transform:translateY(-2px);
+  box-shadow: 0 8px 32px rgba(255,215,0,.4);
+}
+.btn-green {
+  background: linear-gradient(135deg,var(--green2),var(--green));
+  color:#000;
+  box-shadow: 0 4px 20px rgba(0,230,118,.25);
+}
+.btn-green:hover {
+  transform:translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,230,118,.4);
+}
+.btn-outline {
+  background:transparent;
+  border:1px solid var(--border-bright);
+  color:var(--text-secondary);
+}
+.btn-outline:hover {
+  border-color:var(--gold); color:var(--gold);
+  background:rgba(255,215,0,.06);
+}
+.btn-excel {
+  background: linear-gradient(135deg,#1d6f42,#21a366);
+  color:#fff;
+  box-shadow: 0 4px 20px rgba(33,163,102,.3);
+}
+.btn-excel:hover {
+  transform:translateY(-2px);
+  box-shadow: 0 8px 32px rgba(33,163,102,.5);
+}
+.btn-sm { padding:8px 18px; font-size:.8rem; }
+.btn-row {
+  display:flex; flex-wrap:wrap; gap:12px;
+  margin-top:28px; align-items:center;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TABLES
+═══════════════════════════════════════════════════════════ */
+.table-wrap {
+  overflow-x:auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+table {
+  width:100%; border-collapse:collapse;
+  font-size:.86rem;
+}
+thead th {
+  background: var(--bg-card2);
+  color: var(--text-secondary);
+  font-size:.75rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:.1em;
+  padding:14px 16px;
+  text-align:left; white-space:nowrap;
+  border-bottom:1px solid var(--border);
+}
+tbody tr {
+  border-bottom:1px solid var(--border);
+  transition:var(--transition);
+}
+tbody tr:last-child { border-bottom:none; }
+tbody tr:hover { background:rgba(255,255,255,.025); }
+tbody td {
+  padding:12px 16px;
+  color:var(--text-primary);
+  vertical-align:middle;
+}
+.td-center { text-align:center; }
+.td-mono { font-family:var(--font-mono); font-size:.82rem; }
+
+/* Habit dot cells */
+.habit-dot {
+  width:24px; height:24px;
+  border-radius:50%; display:inline-flex;
+  align-items:center; justify-content:center;
+  font-size:.75rem; font-weight:700;
+}
+.habit-dot.yes {
+  background:rgba(0,230,118,.15);
+  color:var(--green); border:1px solid var(--green);
+}
+.habit-dot.no {
+  background:rgba(255,23,68,.1);
+  color:var(--red); border:1px solid rgba(255,23,68,.3);
+}
+
+/* Score badge */
+.badge {
+  display:inline-flex; align-items:center;
+  gap:4px; padding:4px 12px;
+  border-radius:100px; font-size:.8rem; font-weight:700;
+}
+.badge-perfect { background:rgba(0,230,118,.15); color:var(--green); border:1px solid var(--green); }
+.badge-good    { background:rgba(0,229,255,.1);  color:var(--cyan);  border:1px solid rgba(0,229,255,.3); }
+.badge-ok      { background:rgba(255,215,0,.1);  color:var(--gold);  border:1px solid rgba(255,215,0,.3); }
+.badge-low     { background:rgba(255,23,68,.1);  color:var(--red);   border:1px solid rgba(255,23,68,.3); }
+
+/* ═══════════════════════════════════════════════════════════
+   RULES GRID
+═══════════════════════════════════════════════════════════ */
+.rules-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:16px;
+}
+.rule-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding:20px;
+  display:flex; gap:14px; align-items:flex-start;
+  transition:var(--transition);
+  position:relative; overflow:hidden;
+}
+.rule-card::after {
+  content:'';
+  position:absolute; left:0; top:0; bottom:0; width:3px;
+  background: linear-gradient(180deg,var(--gold),var(--orange));
+}
+.rule-card:hover {
+  border-color:var(--gold);
+  transform:translateY(-2px);
+  box-shadow:var(--shadow);
+}
+.rule-num {
+  font-size:1.5rem; font-weight:900;
+  color:rgba(255,215,0,.2);
+  font-family:var(--font-mono);
+  min-width:36px;
+}
+.rule-icon { font-size:1.6rem; }
+.rule-text { flex:1; }
+.rule-title { font-weight:700; font-size:.95rem; margin-bottom:4px; }
+.rule-sub   { font-size:.78rem; color:var(--text-muted); }
+
+/* ═══════════════════════════════════════════════════════════
+   STREAK / CALENDAR MINI
+═══════════════════════════════════════════════════════════ */
+.streak-fire {
+  font-size:3rem;
+  animation: flicker 1.5s infinite alternate;
+}
+.streak-count {
+  font-size:4rem; font-weight:900;
+  background:linear-gradient(135deg,#ff6d00,#ffd700);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  line-height:1;
+}
+.streak-label {
+  font-size:.8rem; text-transform:uppercase;
+  letter-spacing:.15em; color:var(--text-muted);
+}
+
+/* Habit heatmap dots */
+.heatmap {
+  display:flex; flex-wrap:wrap; gap:4px;
+}
+.hm-dot {
+  width:16px; height:16px;
+  border-radius:3px;
+  background:var(--bg-card2);
+  transition:var(--transition);
+  cursor:default;
+  position:relative;
+}
+.hm-dot:hover .hm-tip {
+  display:block;
+}
+.hm-dot[data-pct="100"] { background:#00c853; }
+.hm-dot[data-pct="90"]  { background:#00e676; }
+.hm-dot[data-pct="80"]  { background:#76ff03; }
+.hm-dot[data-pct="70"]  { background:#ffd740; }
+.hm-dot[data-pct="60"]  { background:#ffab40; }
+.hm-dot[data-pct="50"]  { background:#ff6d00; }
+.hm-dot[data-pct="low"] { background:#ff1744; }
+.hm-tip {
+  display:none;
+  position:absolute; bottom:calc(100% + 6px); left:50%;
+  transform:translateX(-50%);
+  background:var(--bg-card2); border:1px solid var(--border);
+  border-radius:6px; padding:4px 8px;
+  font-size:.7rem; white-space:nowrap; z-index:99;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MONTH SELECTOR
+═══════════════════════════════════════════════════════════ */
+.month-selector {
+  display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px;
+}
+.month-btn {
+  padding:8px 18px;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:100px;
+  color:var(--text-secondary);
+  cursor:pointer; font-size:.82rem; font-weight:600;
+  transition:var(--transition);
+}
+.month-btn:hover  { border-color:var(--purple); color:var(--purple); }
+.month-btn.active {
+  background:rgba(170,0,255,.1);
+  border-color:var(--purple); color:var(--purple);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NOTIFICATIONS / TOASTS
+═══════════════════════════════════════════════════════════ */
+#toast-container {
+  position:fixed; bottom:24px; right:24px; z-index:9999;
+  display:flex; flex-direction:column; gap:10px;
+}
+.toast {
+  display:flex; align-items:center; gap:12px;
+  background:var(--bg-card2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 20px;
+  box-shadow:var(--shadow-lg);
+  font-size:.88rem; min-width:280px;
+  animation:slideIn .3s ease;
+  border-left:4px solid var(--green);
+}
+.toast.error   { border-left-color:var(--red); }
+.toast.info    { border-left-color:var(--blue); }
+.toast.warning { border-left-color:var(--orange); }
+@keyframes slideIn {
+  from { opacity:0; transform:translateX(40px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes slideOut {
+  to   { opacity:0; transform:translateX(40px); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════════════ */
+.modal-overlay {
+  display:none;
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(6px);
+  align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--bg-card);
+  border:1px solid var(--border-bright);
+  border-radius:var(--radius-lg);
+  padding:36px;
+  max-width:500px; width:92%;
+  box-shadow:var(--shadow-lg);
+  animation:fadeIn .3s ease;
+}
+.modal h2 { font-size:1.4rem; margin-bottom:12px; }
+.modal p  { color:var(--text-secondary); margin-bottom:24px; }
+.modal-btns { display:flex; gap:12px; justify-content:flex-end; }
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION HEADERS
+═══════════════════════════════════════════════════════════ */
+.section-header {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:12px;
+  margin-bottom:24px;
+}
+.section-title {
+  font-size:1.3rem; font-weight:800;
+  display:flex; align-items:center; gap:10px;
+}
+.section-title .accent { color:var(--gold); }
+
+/* ═══════════════════════════════════════════════════════════
+   DIVIDER
+═══════════════════════════════════════════════════════════ */
+.divider {
+  height:1px; background:var(--border);
+  margin:28px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════════════════════ */
+.empty-state {
+  text-align:center; padding:60px 20px;
+  color:var(--text-muted);
+}
+.empty-state .big-icon { font-size:3rem; margin-bottom:12px; }
+.empty-state h3 { font-size:1.1rem; color:var(--text-secondary); margin-bottom:8px; }
+
+/* ═══════════════════════════════════════════════════════════
+   HABIT STATS BARS (Stats page)
+═══════════════════════════════════════════════════════════ */
+.habit-stat-row {
+  display:flex; align-items:center; gap:14px;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.habit-stat-row:last-child { border-bottom:none; }
+.habit-stat-icon { font-size:1.3rem; width:30px; text-align:center; }
+.habit-stat-name { flex:1; font-size:.88rem; font-weight:600; }
+.habit-stat-bar-wrap { width:160px; }
+.habit-stat-pct {
+  font-size:.82rem; font-weight:700;
+  width:48px; text-align:right;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE TWEAKS
+═══════════════════════════════════════════════════════════ */
+@media(max-width:600px) {
+  .hero { padding:28px 12px 20px; }
+  .card { padding:18px; }
+  .btn  { padding:10px 20px; }
+  .entry-header { flex-direction:column; align-items:flex-start; }
+  .score-live { align-items:flex-start; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MISC UTILITIES
+═══════════════════════════════════════════════════════════ */
+.text-gold    { color:var(--gold); }
+.text-green   { color:var(--green); }
+.text-red     { color:var(--red); }
+.text-cyan    { color:var(--cyan); }
+.text-muted   { color:var(--text-muted); }
+.text-sec     { color:var(--text-secondary); }
+.fw-900       { font-weight:900; }
+.fw-700       { font-weight:700; }
+.mb-4         { margin-bottom:4px; }
+.mb-8         { margin-bottom:8px; }
+.mb-16        { margin-bottom:16px; }
+.mb-24        { margin-bottom:24px; }
+.mt-16        { margin-top:16px; }
+.gap-8        { gap:8px; }
+.flex         { display:flex; }
+.flex-col     { flex-direction:column; }
+.items-center { align-items:center; }
+.justify-between { justify-content:space-between; }
+.w-full       { width:100%; }
+</style>
+</head>
+<body>
+
+<!-- Background decorations -->
+<div class="bg-stars"></div>
+<div class="bg-grid"></div>
+
+<div id="toast-container"></div>
+
+<!-- ── MODAL ── -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h2>⚠️ Entry Exists</h2>
+    <p id="modalMsg">An entry already exists for this date. Do you want to overwrite it?</p>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeModal(false)">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal(true)">Overwrite</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrapper">
+
+  <!-- ══ HERO ══ -->
+  <div class="hero">
+    <div class="hero-badge">🔥 180-Day Challenge</div>
+    <div class="hero-flame">🔥</div>
+    <h1 class="hero-title">DISCIPLINE TRACKER</h1>
+    <p class="hero-sub">Build Discipline • Build Confidence • Build Your Legacy</p>
+  </div>
+
+  <!-- ══ NAVIGATION ══ -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="showPage('dashboard',this)">
+      <span class="tab-icon">📊</span> Dashboard
+    </button>
+    <button class="tab-btn" onclick="showPage('entry',this)">
+      <span class="tab-icon">📝</span> Daily Entry
+    </button>
+    <button class="tab-btn" onclick="showPage('log',this)">
+      <span class="tab-icon">📋</span> Full Log
+    </button>
+    <button class="tab-btn" onclick="showPage('weekly',this)">
+      <span class="tab-icon">📆</span> Weekly
+    </button>
+    <button class="tab-btn" onclick="showPage('monthly',this)">
+      <span class="tab-icon">📅</span> Monthly
+    </button>
+    <button class="tab-btn" onclick="showPage('stats',this)">
+      <span class="tab-icon">🏆</span> Stats
+    </button>
+    <button class="tab-btn" onclick="showPage('rules',this)">
+      <span class="tab-icon">📜</span> Rules
+    </button>
+    <button class="tab-btn btn-excel" onclick="exportExcel()" style="border-radius:100px;">
+      <span class="tab-icon">💾</span> Export Excel
+    </button>
+  </nav>
+
+  <!-- ══════════════════════════════════════
+       PAGE: DASHBOARD
+  ══════════════════════════════════════ -->
+  <div id="page-dashboard" class="page active">
+
+    <!-- Journey progress bar -->
+    <div class="journey-bar-wrap">
+      <div class="journey-bar-header">
+        <div>
+          <div class="journey-bar-title">🗓️ Journey Progress</div>
+          <div class="text-muted" id="dash-dates" style="font-size:.82rem;margin-top:4px;"></div>
+        </div>
+        <div class="journey-bar-pct" id="dash-journey-pct">0%</div>
+      </div>
+      <div class="journey-track">
+        <div class="journey-fill" id="dash-journey-bar" style="width:0%">
+          <span class="journey-fill-text" id="dash-journey-label"></span>
+        </div>
+      </div>
+      <div class="journey-milestones">
+        <div class="milestone">Day 1</div>
+        <div class="milestone">Week 4</div>
+        <div class="milestone">Month 3</div>
+        <div class="milestone">Week 24</div>
+        <div class="milestone">Day 180</div>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="grid-4 mb-24" id="kpi-row"></div>
+
+    <div class="grid-2 mb-24">
+      <!-- Today's status -->
+      <div class="card">
+        <div class="card-title"><span>📅</span> Today's Status</div>
+        <div id="today-status-content"></div>
+      </div>
+
+      <!-- Streak -->
+      <div class="card" style="text-align:center;">
+        <div class="card-title" style="justify-content:center;"><span>🔥</span> Streaks</div>
+        <div class="streak-fire">🔥</div>
+        <div class="streak-count" id="dash-streak">0</div>
+        <div class="streak-label">Current Streak</div>
+        <div class="divider"></div>
+        <div style="display:flex;justify-content:space-around;">
+          <div>
+            <div style="font-size:1.6rem;font-weight:900;color:var(--gold)" id="dash-best-streak">0</div>
+            <div class="streak-label">Best Streak</div>
+          </div>
+          <div>
+            <div style="font-size:1.6rem;font-weight:900;color:var(--green)" id="dash-perfect">0</div>
+            <div class="streak-label">Perfect Days</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heatmap -->
+    <div class="card mb-24">
+      <div class="card-title"><span>🗺️</span> Activity Heatmap <span style="font-size:.75rem;font-weight:400;color:var(--text-muted);margin-left:auto;">Each dot = 1 day tracked</span></div>
+      <div class="heatmap" id="heatmap"></div>
+      <div style="display:flex;gap:10px;margin-top:14px;align-items:center;flex-wrap:wrap;">
+        <span class="text-muted" style="font-size:.75rem;">Less</span>
+        <div style="width:14px;height:14px;border-radius:3px;background:var(--bg-card2);"></div>
+        <div style="width:14px;height:14px;border-radius:3px;background:#ff1744;"></div>
+        <div style="width:14px;height:14px;border-radius:3px;background:#ff6d00;"></div>
+        <div style="width:14px;height:14px;border-radius:3px;background:#ffd740;"></div>
+        <div style="width:14px;height:14px;border-radius:3px;background:#76ff03;"></div>
+        <div style="width:14px;height:14px;border-radius:3px;background:#00e676;"></div>
+        <span class="text-muted" style="font-size:.75rem;">More</span>
+      </div>
+    </div>
+
+    <!-- Habit overview -->
+    <div class="card">
+      <div class="card-title"><span>📋</span> Habit Overview (All Time)</div>
+      <div id="habit-overview"></div>
+    </div>
+
+  </div><!-- /dashboard -->
+
+  <!-- ══════════════════════════════════════
+       PAGE: DAILY ENTRY
+  ══════════════════════════════════════ -->
+  <div id="page-entry" class="page">
+    <div class="card">
+      <div class="entry-header">
+        <div>
+          <div class="section-title"><span class="accent">📝</span> Daily Entry</div>
+          <div class="text-muted" style="font-size:.85rem;margin-top:4px;">
+            Be ruthlessly honest. Every lie weakens you.
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div class="date-picker-wrap">
+            <label style="font-size:.8rem;color:var(--text-muted);">Date:</label>
+            <input type="date" class="date-input" id="entry-date" onchange="onDateChange()">
+          </div>
+          <div class="score-live">
+            <div class="score-live-num"><span id="live-score">0</span><span style="font-size:1rem;color:var(--text-muted);">/10</span></div>
+            <div class="score-live-label">Live Score</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="entry-day-info" class="mb-24" style="padding:14px 20px;background:var(--bg-card2);border-radius:var(--radius);border:1px solid var(--border);"></div>
+
+      <div class="progress-wrap mb-24">
+        <div class="progress-label"><span>Today's Score</span><span id="score-pct">0%</span></div>
+        <div class="progress-track">
+          <div class="progress-fill green" id="score-bar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="habit-grid" id="habit-grid"></div>
+
+      <div class="reflection-wrap">
+        <label>📝 Daily Reflection <span class="text-muted">(What went well? What failed? What will you improve?)</span></label>
+        <textarea class="reflection-input" id="reflection" placeholder="Write your honest reflection here..."></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveEntry()">💾 Save Entry</button>
+        <button class="btn btn-outline" onclick="clearHabits()">🔄 Clear</button>
+        <span class="text-muted" style="font-size:.8rem;margin-left:auto;" id="save-hint"></span>
+      </div>
+    </div>
+  </div><!-- /entry -->
+
+  <!-- ══════════════════════════════════════
+       PAGE: FULL LOG
+  ══════════════════════════════════════ -->
+  <div id="page-log" class="page">
+    <div class="section-header">
+      <div class="section-title"><span class="accent">📋</span> Full 180-Day Log</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <input type="text" class="date-input" id="log-search"
+          placeholder="🔍 Search date / notes..."
+          oninput="renderLog()" style="min-width:200px;">
+        <select class="date-input" id="log-filter" onchange="renderLog()">
+          <option value="all">All Days</option>
+          <option value="perfect">Perfect (10/10)</option>
+          <option value="good">Good (7-9)</option>
+          <option value="ok">OK (4-6)</option>
+          <option value="low">Low (0-3)</option>
+        </select>
+      </div>
+    </div>
+    <div class="card" style="padding:0;">
+      <div class="table-wrap">
+        <table id="log-table">
+          <thead>
+            <tr>
+              <th>Date</th><th>Day</th><th>Day #</th>
+              <th>Score</th>
+              <th title="Wake 6AM">⏰</th>
+              <th title="Sleep 10PM">🌙</th>
+              <th title="No Daytime Rest">🛏️</th>
+              <th title="Workout">💪</th>
+              <th title="Naam Jap">🙏</th>
+              <th title="English">🗣️</th>
+              <th title="Water">💧</th>
+              <th title="No Social Media">📵</th>
+              <th title="No Arguments">🤝</th>
+              <th title="Fear Task">😨</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="log-body"></tbody>
+        </table>
+      </div>
+      <div id="log-empty" class="empty-state" style="display:none;">
+        <div class="big-icon">📭</div>
+        <h3>No entries found</h3>
+        <p>Start logging your daily habits to see your journey here.</p>
+      </div>
+    </div>
+  </div><!-- /log -->
+
+  <!-- ══════════════════════════════════════
+       PAGE: WEEKLY
+  ══════════════════════════════════════ -->
+  <div id="page-weekly" class="page">
+    <div class="section-header">
+      <div class="section-title"><span class="accent">📆</span> Weekly Review</div>
+    </div>
+    <div id="weekly-content"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: MONTHLY
+  ══════════════════════════════════════ -->
+  <div id="page-monthly" class="page">
+    <div class="section-header">
+      <div class="section-title"><span class="accent">📅</span> Monthly Review</div>
+    </div>
+    <div class="month-selector" id="month-selector"></div>
+    <div id="monthly-content"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: STATS
+  ══════════════════════════════════════ -->
+  <div id="page-stats" class="page">
+    <div class="section-title mb-24"><span class="accent">🏆</span> Statistics Dashboard</div>
+    <div id="stats-content"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: RULES
+  ══════════════════════════════════════ -->
+  <div id="page-rules" class="page">
+    <div class="section-header">
+      <div class="section-title"><span class="accent">📜</span> The 11 Laws of Discipline</div>
+      <div class="text-muted" style="font-size:.85rem;">Live by these. Every. Single. Day.</div>
+    </div>
+    <div class="rules-grid" id="rules-grid"></div>
+    <div class="card mt-16" style="border-color:var(--red);margin-top:20px;text-align:center;padding:24px;">
+      <div style="font-size:1.3rem;font-weight:800;color:var(--red);">
+        ⚠️ Break one rule = Break the day.<br>
+        <span style="font-size:.95rem;font-weight:400;color:var(--text-secondary);">
+          Be honest. Be ruthless. Truth builds character.
+        </span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   DATA & CONSTANTS
+═══════════════════════════════════════════════════════════ */
+const HABITS = [
+  { key:'wake_6am',         label:'Wake Up at 6:00 AM',       icon:'⏰', sub:'Rise before the world' },
+  { key:'sleep_10pm',       label:'Sleep at 10:00 PM',        icon:'🌙', sub:'Rest is discipline too' },
+  { key:'no_daytime_rest',  label:'No Daytime Rest',          icon:'🛏️',sub:'Stay in motion' },
+  { key:'workout_1hr',      label:'Workout 1 Hour',           icon:'💪', sub:'Build physical strength' },
+  { key:'naam_jap_1000',    label:'1000 Naam Jap',            icon:'🙏', sub:'Spiritual foundation' },
+  { key:'english_practice', label:'English Practice 1 Hour',  icon:'🗣️',sub:'Communication mastery' },
+  { key:'water_3_4L',       label:'Drink 3–4 Litres Water',   icon:'💧', sub:'Hydration is vital' },
+  { key:'no_social_media',  label:'No Social Media',          icon:'📵', sub:'Reclaim your attention' },
+  { key:'no_arguments',     label:'No Arguments',             icon:'🤝', sub:'Peace is power' },
+  { key:'fear_task',        label:'Did Fear Task',            icon:'😨', sub:'Grow through discomfort' },
+];
+
+const RULES = [
+  { icon:'🚫', rule:'No arguments with anyone — ever',           sub:'Peace is power' },
+  { icon:'📵', rule:'No social media — zero scrolling',          sub:'Reclaim your attention' },
+  { icon:'⏰', rule:'Wake up at 6:00 AM sharp — no snooze',      sub:'Win the morning, win the day' },
+  { icon:'🌙', rule:'Sleep at 10:00 PM — no exceptions',         sub:'Rest is part of discipline' },
+  { icon:'🛏️',rule:'No daytime rest or lying on bed',            sub:'Stay in motion' },
+  { icon:'💪', rule:'Workout daily — minimum 1 hour',            sub:'Build physical strength' },
+  { icon:'🙏', rule:'1000 Naam Jap daily — without fail',        sub:'Spiritual foundation' },
+  { icon:'🗣️',rule:'English speaking practice — 1 hour daily',  sub:'Communication mastery' },
+  { icon:'💧', rule:'Drink 3–4 litres of water every day',       sub:'Hydration is vital' },
+  { icon:'😨', rule:'Do ONE thing daily that scares you',        sub:'Grow through discomfort' },
+  { icon:'📋', rule:'Track honestly — NO fake entries ever',     sub:'Truth builds character' },
+];
+
+const TOTAL_DAYS  = 180;
+const TOTAL_HABITS = HABITS.length;
+const STORE_KEY   = 'disciplineTracker_v2';
+
+/* ── State ── */
+let db = loadDB();
+let modalResolve = null;
+
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { startDate: todayISO(), entries: {} };
+}
+
+function saveDB() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(db));
+}
+
+function todayISO() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function dayNumber(dateStr) {
+  const start = new Date(db.startDate);
+  const target = new Date(dateStr);
+  const diff = Math.round((target - start) / 86400000) + 1;
+  return (diff >= 1 && diff <= TOTAL_DAYS) ? diff : null;
+}
+
+function calcScore(entry) {
+  return HABITS.reduce((s, h) => s + (entry[h.key] ? 1 : 0), 0);
+}
+
+function scoreBadge(score, total) {
+  const pct = total > 0 ? score / total * 100 : 0;
+  if (pct === 100) return `<span class="badge badge-perfect">🏆 ${score}/${total}</span>`;
+  if (pct >= 70)   return `<span class="badge badge-good">⭐ ${score}/${total}</span>`;
+  if (pct >= 40)   return `<span class="badge badge-ok">● ${score}/${total}</span>`;
+  return `<span class="badge badge-low">✗ ${score}/${total}</span>`;
+}
+
+function pctColor(pct) {
+  if (pct >= 90) return 'green';
+  if (pct >= 60) return 'yellow';
+  return 'red';
+}
+
+function getDayName(dateStr) {
+  return new Date(dateStr).toLocaleDateString('en-US', { weekday:'long' });
+}
+
+function getStats() {
+  const entries = Object.values(db.entries);
+  if (!entries.length) return null;
+  const scores = entries.map(e => calcScore(e));
+  const threshold = TOTAL_HABITS * 0.8;
+
+  // Best streak
+  let bestStreak = 0, tempStreak = 0;
+  Object.keys(db.entries).sort().forEach(ds => {
+    if (calcScore(db.entries[ds]) >= threshold) {
+      tempStreak++;
+      bestStreak = Math.max(bestStreak, tempStreak);
+    } else { tempStreak = 0; }
+  });
+
+  // Current streak (backwards from today)
+  let currentStreak = 0;
+  let checkDate = new Date(todayISO());
+  while (true) {
+    const ds = checkDate.toISOString().slice(0,10);
+    const e  = db.entries[ds];
+    if (!e || calcScore(e) < threshold) break;
+    currentStreak++;
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+
+  const habitStats = HABITS.map(h => {
+    const comp = entries.filter(e => e[h.key]).length;
+    return { ...h, completed: comp, total: entries.length,
+             pct: entries.length ? comp / entries.length * 100 : 0 };
+  });
+
+  return {
+    totalDays:     entries.length,
+    avgScore:      scores.reduce((a,b) => a+b, 0) / scores.length,
+    bestScore:     Math.max(...scores),
+    worstScore:    Math.min(...scores),
+    perfectDays:   scores.filter(s => s === TOTAL_HABITS).length,
+    currentStreak, bestStreak, habitStats,
+    totalScore:    scores.reduce((a,b) => a+b, 0),
+    maxPossible:   entries.length * TOTAL_HABITS,
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════ */
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  // Render the page
+  const renders = {
+    dashboard: renderDashboard,
+    entry:     renderEntry,
+    log:       renderLog,
+    weekly:    renderWeekly,
+    monthly:   renderMonthly,
+    stats:     renderStats,
+    rules:     renderRules,
+  };
+  if (renders[id]) renders[id]();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════════════ */
+function renderDashboard() {
+  const stats     = getStats();
+  const today     = todayISO();
+  const dayNum    = dayNumber(today);
+  const startD    = new Date(db.startDate);
+  const endD      = new Date(db.startDate);
+  endD.setDate(endD.getDate() + TOTAL_DAYS - 1);
+  const journeyPct = dayNum ? Math.round(dayNum / TOTAL_DAYS * 100) : 0;
+
+  // Dates
+  document.getElementById('dash-dates').textContent =
+    `${db.startDate}  →  ${endD.toISOString().slice(0,10)}`;
+
+  // Journey bar
+  document.getElementById('dash-journey-pct').textContent = journeyPct + '%';
+  document.getElementById('dash-journey-bar').style.width  = journeyPct + '%';
+  document.getElementById('dash-journey-label').textContent =
+    dayNum ? `Day ${dayNum}` : '';
+
+  // KPIs
+  const kpiData = [
+    { icon:'📅', label:'Days Logged',   value: stats ? stats.totalDays : 0,
+      color:'var(--cyan)',  glow:'rgba(0,229,255,.08)' },
+    { icon:'🏆', label:'Perfect Days',  value: stats ? stats.perfectDays : 0,
+      color:'var(--gold)',  glow:'rgba(255,215,0,.08)' },
+    { icon:'⭐', label:'Avg Score',
+      value: stats ? stats.avgScore.toFixed(1)+'/10' : '0/10',
+      color:'var(--green)', glow:'rgba(0,230,118,.08)' },
+    { icon:'📊', label:'Overall %',
+      value: stats ? Math.round(stats.totalScore/stats.maxPossible*100)+'%' : '0%',
+      color:'var(--purple)',glow:'rgba(170,0,255,.08)' },
+  ];
+
+  document.getElementById('kpi-row').innerHTML = kpiData.map(k => `
+    <div class="kpi" style="--kpi-color:${k.color};--kpi-glow:${k.glow};">
+      <span class="kpi-icon">${k.icon}</span>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-label">${k.label}</div>
+    </div>
+  `).join('');
+
+  // Streaks
+  document.getElementById('dash-streak').textContent      = stats ? stats.currentStreak : 0;
+  document.getElementById('dash-best-streak').textContent  = stats ? stats.bestStreak    : 0;
+  document.getElementById('dash-perfect').textContent      = stats ? stats.perfectDays   : 0;
+
+  // Today status
+  const todayEntry = db.entries[today];
+  const todaySc    = todayEntry ? calcScore(todayEntry) : null;
+  const todayPct   = todaySc !== null ? Math.round(todaySc / TOTAL_HABITS * 100) : 0;
+
+  document.getElementById('today-status-content').innerHTML = todayEntry ? `
+    <div style="margin-bottom:16px;">${scoreBadge(todaySc, TOTAL_HABITS)}</div>
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Score</span><span>${todayPct}%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill ${pctColor(todayPct)}" style="width:${todayPct}%"></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      ${HABITS.map(h => `
+        <span style="font-size:1.4rem;opacity:${todayEntry[h.key]?1:0.2};"
+              title="${h.label} — ${todayEntry[h.key]?'Done':'Not done'}">${h.icon}</span>
+      `).join('')}
+    </div>
+    ${todayEntry.notes ? `<div class="divider"></div>
+      <div style="font-size:.82rem;color:var(--text-muted);font-style:italic;">"${todayEntry.notes}"</div>` : ''}
+  ` : `
+    <div class="empty-state" style="padding:20px 0;">
+      <div class="big-icon">📋</div>
+      <h3>Not logged yet</h3>
+      <p>Go to Daily Entry to log today's habits.</p>
+      <button class="btn btn-primary btn-sm" style="margin-top:12px;"
+              onclick="showPage('entry',null)">Log Today →</button>
+    </div>
+  `;
+
+  // Heatmap (last 180 days)
+  const hm = document.getElementById('heatmap');
+  hm.innerHTML = '';
+  const startDate = new Date(db.startDate);
+  for (let i = 0; i < TOTAL_DAYS; i++) {
+    const d   = new Date(startDate);
+    d.setDate(d.getDate() + i);
+    const ds  = d.toISOString().slice(0,10);
+    const e   = db.entries[ds];
+    const dot = document.createElement('div');
+    dot.className = 'hm-dot';
+    if (e) {
+      const sc  = calcScore(e);
+      const pct = sc / TOTAL_HABITS * 100;
+      dot.setAttribute('data-pct',
+        pct===100?'100': pct>=90?'90': pct>=80?'80': pct>=70?'70': pct>=60?'60': pct>=50?'50':'low');
+    }
+    dot.title = `${ds}: ${e ? calcScore(e)+'/'+TOTAL_HABITS : 'No entry'}`;
+    hm.appendChild(dot);
+  }
+
+  // Habit overview
+  if (stats) {
+    document.getElementById('habit-overview').innerHTML =
+      stats.habitStats.map(h => {
+        const clr = h.pct >= 80 ? 'green' : h.pct >= 50 ? 'yellow' : 'red';
+        return `
+        <div class="habit-stat-row">
+          <div class="habit-stat-icon">${h.icon}</div>
+          <div class="habit-stat-name">${h.label}</div>
+          <div class="habit-stat-bar-wrap">
+            <div class="progress-track" style="height:8px;">
+              <div class="progress-fill ${clr}" style="width:${h.pct.toFixed(1)}%;height:8px;"></div>
+            </div>
+          </div>
+          <div class="habit-stat-pct text-${clr==='green'?'green':clr==='yellow'?'gold':'red'}">
+            ${h.pct.toFixed(0)}%
+          </div>
+        </div>`;
+      }).join('');
+  } else {
+    document.getElementById('habit-overview').innerHTML =
+      '<div class="empty-state" style="padding:20px;"><p>No data yet. Start logging!</p></div>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DAILY ENTRY
+═══════════════════════════════════════════════════════════ */
+let habitStates = {};
+
+function renderEntry() {
+  const dateEl = document.getElementById('entry-date');
+  if (!dateEl.value) dateEl.value = todayISO();
+  onDateChange();
+  buildHabitGrid();
+}
+
+function onDateChange() {
+  const ds     = document.getElementById('entry-date').value;
+  if (!ds) return;
+  const dn     = dayNumber(ds);
+  const exists = db.entries[ds];
+
+  document.getElementById('entry-day-info').innerHTML = dn ? `
+    <span class="text-gold fw-700">Day ${dn}</span> of ${TOTAL_DAYS}
+    &nbsp;•&nbsp; ${getDayName(ds)}
+    &nbsp;•&nbsp; Week ${Math.ceil(dn/7)}
+    &nbsp;•&nbsp; Month ${Math.ceil(dn/30)}
+    ${exists ? `&nbsp;•&nbsp;<span class="text-green">✓ Entry exists</span>` : ''}
+  ` : `<span class="text-red">⚠️ Date outside 180-day journey (Start: ${db.startDate})</span>`;
+
+  document.getElementById('save-hint').textContent =
+    exists ? 'Entry exists — saving will overwrite.' : '';
+
+  // Load existing
+  habitStates = {};
+  if (exists) {
+    HABITS.forEach(h => { habitStates[h.key] = !!exists[h.key]; });
+    document.getElementById('reflection').value = exists.notes || '';
+  } else {
+    HABITS.forEach(h => { habitStates[h.key] = false; });
+    document.getElementById('reflection').value = '';
+  }
+  updateHabitGrid();
+  updateLiveScore();
+}
+
+function buildHabitGrid() {
+  const grid = document.getElementById('habit-grid');
+  grid.innerHTML = HABITS.map((h, i) => `
+    <div class="habit-toggle" id="htog-${h.key}" onclick="toggleHabit('${h.key}')">
+      <div class="habit-emoji">${h.icon}</div>
+      <div class="habit-info">
+        <div class="habit-name">${h.label}</div>
+        <div class="habit-sub">${h.sub}</div>
+      </div>
+      <div class="habit-check" id="hcheck-${h.key}">✓</div>
+    </div>
+  `).join('');
+  updateHabitGrid();
+}
+
+function toggleHabit(key) {
+  habitStates[key] = !habitStates[key];
+  updateHabitGrid();
+  updateLiveScore();
+}
+
+function updateHabitGrid() {
+  HABITS.forEach(h => {
+    const tog   = document.getElementById('htog-' + h.key);
+    const check = document.getElementById('hcheck-' + h.key);
+    if (!tog) return;
+    tog.classList.toggle('done', !!habitStates[h.key]);
+    check.style.color = habitStates[h.key] ? '#000' : 'transparent';
+  });
+}
+
+function updateLiveScore() {
+  const score = HABITS.reduce((s, h) => s + (habitStates[h.key] ? 1 : 0), 0);
+  const pct   = Math.round(score / TOTAL_HABITS * 100);
+  document.getElementById('live-score').textContent = score;
+  document.getElementById('score-pct').textContent  = pct + '%';
+  const bar = document.getElementById('score-bar');
+  bar.style.width = pct + '%';
+  bar.className = 'progress-fill ' + pctColor(pct);
+}
+
+function clearHabits() {
+  HABITS.forEach(h => { habitStates[h.key] = false; });
+  document.getElementById('reflection').value = '';
+  updateHabitGrid();
+  updateLiveScore();
+}
+
+async function saveEntry() {
+  const ds = document.getElementById('entry-date').value;
+  if (!ds) { showToast('Please select a date.', 'error'); return; }
+  const dn = dayNumber(ds);
+  if (!dn)  { showToast('Date is outside your 180-day journey.', 'error'); return; }
+
+  if (db.entries[ds]) {
+    const ok = await showModal(`An entry for ${ds} already exists (${scoreBadge(calcScore(db.entries[ds]), TOTAL_HABITS)}). Overwrite?`);
+    if (!ok) return;
+  }
+
+  const entry = {
+    date: ds, day: getDayName(ds), dayNum: dn,
+    notes: document.getElementById('reflection').value.trim(),
+  };
+  HABITS.forEach(h => { entry[h.key] = habitStates[h.key] ? 1 : 0; });
+
+  db.entries[ds] = entry;
+  saveDB();
+
+  const score = calcScore(entry);
+  const pct   = Math.round(score / TOTAL_HABITS * 100);
+  let msg = pct === 100 ? '🏆 PERFECT DAY! Absolutely unstoppable!'
+          : pct >= 80   ? '💪 Strong performance! Push for perfect tomorrow.'
+          : pct >= 50   ? '⚡ Decent day. Reflect and attack tomorrow.'
+          :               '⚠️ Weak day. Get serious. Tomorrow is a new battle.';
+
+  showToast(`Entry saved! Score: ${score}/${TOTAL_HABITS} (${pct}%) — ${msg}`,
+            pct === 100 ? 'success' : 'info', 5000);
+  document.getElementById('save-hint').textContent = `Saved at ${new Date().toLocaleTimeString()}`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FULL LOG
+═══════════════════════════════════════════════════════════ */
+function renderLog() {
+  const search = (document.getElementById('log-search')?.value || '').toLowerCase();
+  const filter = document.getElementById('log-filter')?.value || 'all';
+
+  let entries = Object.values(db.entries)
+    .sort((a,b) => a.date.localeCompare(b.date));
+
+  if (search) entries = entries.filter(e =>
+    e.date.includes(search) || (e.notes||'').toLowerCase().includes(search));
+
+  if (filter !== 'all') entries = entries.filter(e => {
+    const sc = calcScore(e);
+    if (filter === 'perfect') return sc === 10;
+    if (filter === 'good')    return sc >= 7 && sc <= 9;
+    if (filter === 'ok')      return sc >= 4 && sc <= 6;
+    if (filter === 'low')     return sc <= 3;
+  });
+
+  const tbody = document.getElementById('log-body');
+  const empty = document.getElementById('log-empty');
+
+  if (!entries.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = entries.map(e => {
+    const sc  = calcScore(e);
+    const pct = Math.round(sc / TOTAL_HABITS * 100);
+    const rowCls = pct === 100 ? 'style="background:rgba(0,230,118,.04)"'
+                 : pct >= 70   ? ''
+                 : pct >= 40   ? 'style="background:rgba(255,215,0,.03)"'
+                 :               'style="background:rgba(255,23,68,.04)"';
+    const habitDots = HABITS.map(h =>
+      `<td class="td-center">
+        <div class="habit-dot ${e[h.key] ? 'yes':'no'}">${e[h.key] ? '✓':'✗'}</div>
+      </td>`
+    ).join('');
+    return `<tr ${rowCls}>
+      <td class="td-mono">${e.date}</td>
+      <td>${(e.day||'').slice(0,3)}</td>
+      <td class="td-center">${e.dayNum||''}</td>
+      <td class="td-center">${scoreBadge(sc, TOTAL_HABITS)}</td>
+      ${habitDots}
+      <td style="max-width:200px;font-size:.78rem;color:var(--text-muted);font-style:italic;">
+        ${e.notes||'—'}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WEEKLY
+═══════════════════════════════════════════════════════════ */
+function renderWeekly() {
+  const entries = Object.values(db.entries).sort((a,b) => a.date.localeCompare(b.date));
+  const weeks   = {};
+  entries.forEach(e => {
+    const wn = Math.ceil((e.dayNum||1) / 7);
+    if (!weeks[wn]) weeks[wn] = [];
+    weeks[wn].push(e);
+  });
+
+  const el = document.getElementById('weekly-content');
+  if (!Object.keys(weeks).length) {
+    el.innerHTML = `<div class="empty-state"><div class="big-icon">📆</div>
+      <h3>No data yet</h3><p>Start logging daily entries to see weekly reviews.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = Object.keys(weeks).sort((a,b)=>+b-+a).map(wn => {
+    const we      = weeks[wn];
+    const scores  = we.map(e => calcScore(e));
+    const total   = scores.reduce((a,b) => a+b, 0);
+    const max     = we.length * TOTAL_HABITS;
+    const avg     = total / we.length;
+    const pct     = Math.round(total / max * 100);
+    const dates   = [we[0].date, we[we.length-1].date];
+    const perfect = scores.filter(s => s === TOTAL_HABITS).length;
+
+    const rows = we.map(e => {
+      const sc = calcScore(e);
+      const p  = Math.round(sc / TOTAL_HABITS * 100);
+      return `<tr>
+        <td class="td-mono">${e.date}</td>
+        <td>${(e.day||'').slice(0,3)}</td>
+        <td class="td-center">${scoreBadge(sc, TOTAL_HABITS)}</td>
+        <td style="min-width:180px;">
+          <div class="progress-track" style="height:8px;">
+            <div class="progress-fill ${pctColor(p)}" style="width:${p}%;height:8px;"></div>
+          </div>
+        </td>
+        <td style="font-size:.78rem;max-width:140px;color:var(--text-muted);">${e.notes||'—'}</td>
+      </tr>`;
+    }).join('');
+
+    return `
+    <div class="card mb-24">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <div>
+          <div class="section-title" style="font-size:1.1rem;">
+            <span class="accent">📆</span> Week ${wn}
+          </div>
+          <div class="text-muted" style="font-size:.82rem;margin-top:4px;">
+            ${dates[0]} → ${dates[1]}
+          </div>
+        </div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <div style="font-size:1.4rem;font-weight:900;color:var(--gold)">${avg.toFixed(1)}</div>
+            <div class="text-muted" style="font-size:.72rem;">AVG/DAY</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:1.4rem;font-weight:900;color:var(--green)">${perfect}</div>
+            <div class="text-muted" style="font-size:.72rem;">PERFECT</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:1.4rem;font-weight:900;color:var(--cyan)">${we.length}/7</div>
+            <div class="text-muted" style="font-size:.72rem;">LOGGED</div>
+          </div>
+        </div>
+      </div>
+      <div class="progress-wrap mb-16">
+        <div class="progress-label">
+          <span>Week Score: ${total}/${max}</span><span>${pct}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill ${pctColor(pct)}" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Day</th><th>Score</th><th>Progress</th><th>Notes</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MONTHLY
+═══════════════════════════════════════════════════════════ */
+const MONTH_NAMES = [
+  'Month 1 — Foundation 🌱','Month 2 — Momentum 🚀',
+  'Month 3 — Breakthrough 💥','Month 4 — Mastery 🎯',
+  'Month 5 — Excellence ⭐','Month 6 — Transformation 🦅',
+];
+let selectedMonth = 1;
+
+function renderMonthly() {
+  const entries = Object.values(db.entries);
+  const months  = {};
+  entries.forEach(e => {
+    const mn = Math.ceil((e.dayNum||1) / 30);
+    if (!months[mn]) months[mn] = [];
+    months[mn].push(e);
+  });
+
+  const keys = Object.keys(months).sort((a,b)=>+a-+b);
+
+  // Selector
+  const sel = document.getElementById('month-selector');
+  sel.innerHTML = keys.map(mn => `
+    <button class="month-btn ${+mn===selectedMonth?'active':''}"
+            onclick="selectMonth(${mn})">${MONTH_NAMES[mn-1]||'Month '+mn}</button>
+  `).join('');
+
+  const el  = document.getElementById('monthly-content');
+  if (!keys.length) {
+    el.innerHTML = `<div class="empty-state"><div class="big-icon">📅</div>
+      <h3>No data yet</h3><p>Start logging daily entries to see monthly reviews.</p></div>`;
+    return;
+  }
+
+  if (!months[selectedMonth]) selectedMonth = +keys[0];
+  renderMonthDetail(months[selectedMonth] || [], selectedMonth);
+}
+
+function selectMonth(mn) {
+  selectedMonth = mn;
+  document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  const entries = Object.values(db.entries);
+  const months  = {};
+  entries.forEach(e => {
+    const n = Math.ceil((e.dayNum||1) / 30);
+    if (!months[n]) months[n] = [];
+    months[n].push(e);
+  });
+  renderMonthDetail(months[mn]||[], mn);
+}
+
+function renderMonthDetail(me, mn) {
+  const el     = document.getElementById('monthly-content');
+  const scores = me.map(e => calcScore(e));
+  const total  = scores.reduce((a,b)=>a+b, 0);
+  const max    = me.length * TOTAL_HABITS;
+  const avg    = me.length ? total / me.length : 0;
+  const pct    = max ? Math.round(total/max*100) : 0;
+  const label  = MONTH_NAMES[mn-1] || 'Month '+mn;
+  const perfect= scores.filter(s=>s===TOTAL_HABITS).length;
+  const failed = scores.filter(s=>s===0).length;
+
+  // Habit breakdown
+  const habitRows = HABITS.map(h => {
+    const comp = me.filter(e => e[h.key]).length;
+    const hp   = me.length ? Math.round(comp/me.length*100) : 0;
+    const clr  = hp>=80?'green':hp>=50?'yellow':'red';
+    return `
+    <div class="habit-stat-row">
+      <div class="habit-stat-icon">${h.icon}</div>
+      <div class="habit-stat-name">${h.label}</div>
+      <div class="habit-stat-bar-wrap">
+        <div class="progress-track" style="height:8px;">
+          <div class="progress-fill ${clr}" style="width:${hp}%;height:8px;"></div>
+        </div>
+      </div>
+      <div class="habit-stat-pct">${comp}/${me.length} <span class="text-muted">(${hp}%)</span></div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = !me.length
+    ? `<div class="empty-state"><p>No entries for this month yet.</p></div>`
+    : `
+    <div class="card mb-24">
+      <div class="section-title mb-16"><span class="accent">📅</span> ${label}</div>
+
+      <div class="grid-4 mb-24">
+        <div class="kpi" style="--kpi-color:var(--cyan);">
+          <span class="kpi-icon">📅</span>
+          <div class="kpi-value">${me.length}/30</div>
+          <div class="kpi-label">Days Logged</div>
+        </div>
+        <div class="kpi" style="--kpi-color:var(--gold);">
+          <span class="kpi-icon">⭐</span>
+          <div class="kpi-value">${avg.toFixed(1)}</div>
+          <div class="kpi-label">Avg Score</div>
+        </div>
+        <div class="kpi" style="--kpi-color:var(--green);">
+          <span class="kpi-icon">🔥</span>
+          <div class="kpi-value">${perfect}</div>
+          <div class="kpi-label">Perfect Days</div>
+        </div>
+        <div class="kpi" style="--kpi-color:var(--red);">
+          <span class="kpi-icon">⚠️</span>
+          <div class="kpi-value">${failed}</div>
+          <div class="kpi-label">Failed Days</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap mb-24">
+        <div class="progress-label">
+          <span>Month Score: ${total}/${max}</span><span>${pct}%</span>
+        </div>
+        <div class="progress-track" style="height:16px;">
+          <div class="progress-fill gold" style="width:${pct}%;height:16px;"></div>
+        </div>
+      </div>
+
+      <div class="card-title"><span>📋</span> Habit Breakdown</div>
+      ${habitRows}
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════════════════════ */
+function renderStats() {
+  const stats  = getStats();
+  const dayNum = dayNumber(todayISO());
+  const el     = document.getElementById('stats-content');
+
+  if (!stats) {
+    el.innerHTML = `<div class="empty-state"><div class="big-icon">🏆</div>
+      <h3>No data to analyze</h3><p>Start logging your daily entries!</p></div>`;
+    return;
+  }
+
+  const overallPct = Math.round(stats.totalScore/stats.maxPossible*100);
+  const journeyPct = dayNum ? Math.round(dayNum/TOTAL_DAYS*100) : 0;
+
+  const motivMsg = overallPct >= 90
+    ? { icon:'🏆', msg:'ELITE LEVEL — TOP 1% MENTALITY', clr:'var(--green)',  sub:'You are operating at an extraordinary level. Greatness is inevitable.' }
+    : overallPct >= 75
+    ? { icon:'💪', msg:'STRONG PERFORMER — RISING STAR',  clr:'var(--cyan)',   sub:"You're doing great, but elite status awaits. Push harder." }
+    : overallPct >= 50
+    ? { icon:'⚡', msg:'BUILDING MOMENTUM',               clr:'var(--gold)',   sub:"You're making progress. Commit fully. Every day. No excuses." }
+    : { icon:'⚠️',msg:'WAKE UP CALL',                    clr:'var(--red)',    sub:"You're not giving this journey what it deserves. Choose differently. NOW." };
+
+  el.innerHTML = `
+    <!-- Journey -->
+    <div class="card mb-24">
+      <div class="card-title"><span>🎯</span> Journey Progress</div>
+      <div class="grid-4 mb-16">
+        ${[
+          ['📅','Start Date', db.startDate],
+          ['🗓️','Current Day', (dayNum||0)+'/'+TOTAL_DAYS],
+          ['⏳','Remaining', (TOTAL_DAYS-(dayNum||0))+' days'],
+          ['📊','Completion', journeyPct+'%'],
+        ].map(([ic,lb,vl])=>`
+          <div class="kpi">
+            <span class="kpi-icon">${ic}</span>
+            <div class="kpi-value" style="font-size:1.4rem;">${vl}</div>
+            <div class="kpi-label">${lb}</div>
+          </div>`).join('')}
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Journey</span><span>${journeyPct}%</span></div>
+        <div class="progress-track" style="height:16px;">
+          <div class="progress-fill gold" style="width:${journeyPct}%;height:16px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance -->
+    <div class="card mb-24">
+      <div class="card-title"><span>📊</span> Performance Metrics</div>
+      <div class="grid-4 mb-16">
+        ${[
+          ['⭐','Avg Score',    stats.avgScore.toFixed(1)+'/10','var(--gold)'],
+          ['🏆','Best Day',     stats.bestScore+'/10',          'var(--green)'],
+          ['📉','Worst Day',    stats.worstScore+'/10',         'var(--red)'],
+          ['🔥','Perfect Days', stats.perfectDays,              'var(--cyan)'],
+        ].map(([ic,lb,vl,cl])=>`
+          <div class="kpi" style="--kpi-color:${cl};">
+            <span class="kpi-icon">${ic}</span>
+            <div class="kpi-value">${vl}</div>
+            <div class="kpi-label">${lb}</div>
+          </div>`).join('')}
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Overall: ${stats.totalScore}/${stats.maxPossible}</span>
+          <span>${overallPct}%</span>
+        </div>
+        <div class="progress-track" style="height:16px;">
+          <div class="progress-fill ${pctColor(overallPct)}" style="width:${overallPct}%;height:16px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Streaks -->
+    <div class="card mb-24">
+      <div class="card-title"><span>🔥</span> Streaks</div>
+      <div class="grid-2">
+        <div style="text-align:center;padding:20px;">
+          <div class="streak-fire">🔥</div>
+          <div class="streak-count">${stats.currentStreak}</div>
+          <div class="streak-label">Current Streak</div>
+        </div>
+        <div style="text-align:center;padding:20px;">
+          <div style="font-size:2.5rem;">⭐</div>
+          <div class="streak-count" style="color:var(--gold)">${stats.bestStreak}</div>
+          <div class="streak-label">Best Streak</div>
+        </div>
+      </div>
+      <div class="text-muted" style="font-size:.78rem;text-align:center;margin-top:8px;">
+        Streak = consecutive days with ≥80% score
+      </div>
+    </div>
+
+    <!-- Habit Analysis -->
+    <div class="card mb-24">
+      <div class="card-title"><span>📋</span> Habit-by-Habit Analysis</div>
+      ${stats.habitStats.map(h => {
+        const clr = h.pct>=80?'green':h.pct>=50?'yellow':'red';
+        return `
+        <div class="habit-stat-row">
+          <div class="habit-stat-icon">${h.icon}</div>
+          <div class="habit-stat-name">${h.label}</div>
+          <div style="flex:1;">
+            <div class="progress-track" style="height:10px;">
+              <div class="progress-fill ${clr}" style="width:${h.pct.toFixed(1)}%;height:10px;"></div>
+            </div>
+          </div>
+          <div class="habit-stat-pct">${h.completed}/${h.total}</div>
+          <div style="width:48px;text-align:right;font-size:.82rem;font-weight:700;">
+            ${h.pct.toFixed(0)}%
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Motivational -->
+    <div class="card" style="border-color:${motivMsg.clr};text-align:center;padding:36px;">
+      <div style="font-size:3rem;">${motivMsg.icon}</div>
+      <div style="font-size:1.4rem;font-weight:900;color:${motivMsg.clr};margin:12px 0;">
+        ${motivMsg.msg}
+      </div>
+      <div style="color:var(--text-secondary);max-width:500px;margin:0 auto;">
+        ${motivMsg.sub}
+      </div>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RULES
+═══════════════════════════════════════════════════════════ */
+function renderRules() {
+  document.getElementById('rules-grid').innerHTML = RULES.map((r,i) => `
+    <div class="rule-card">
+      <div class="rule-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="rule-icon">${r.icon}</div>
+      <div class="rule-text">
+        <div class="rule-title">${r.rule}</div>
+        <div class="rule-sub">${r.sub}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EXCEL EXPORT  (SheetJS)
+═══════════════════════════════════════════════════════════ */
+function exportExcel() {
+  const entries = Object.values(db.entries).sort((a,b)=>a.date.localeCompare(b.date));
+  if (!entries.length) {
+    showToast('No data to export yet!', 'error'); return;
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  /* ── Sheet 1: Dashboard ─────────────────────────────── */
+  const stats     = getStats();
+  const dayNum    = dayNumber(todayISO()) || 0;
+  const overallPct= stats ? Math.round(stats.totalScore/stats.maxPossible*100) : 0;
+  const filledBar = '█'.repeat(Math.round(overallPct/100*40))
+                  + '░'.repeat(40-Math.round(overallPct/100*40));
+
+  const dashData = [
+    ['🔥 DISCIPLINE TRACKER — 180 Days of Transformation'],
+    [''],
+    ['Generated', new Date().toLocaleDateString()],
+    ['Journey Start', db.startDate],
+    ['Current Day', `${dayNum} / ${TOTAL_DAYS}`],
+    ['Days Remaining', TOTAL_DAYS - dayNum],
+    [''],
+    ['── KEY METRICS ──'],
+    ['Days Logged',    stats?.totalDays || 0],
+    ['Perfect Days',   stats?.perfectDays || 0],
+    ['Avg Score/Day',  stats ? stats.avgScore.toFixed(2) : 0],
+    ['Best Day',       stats ? stats.bestScore+'/'+TOTAL_HABITS : '-'],
+    ['Worst Day',      stats ? stats.worstScore+'/'+TOTAL_HABITS : '-'],
+    ['Current Streak', stats ? stats.currentStreak + ' days' : 0],
+    ['Best Streak',    stats ? stats.bestStreak + ' days' : 0],
+    ['Overall Score',  stats ? stats.totalScore+'/'+stats.maxPossible : '0/0'],
+    ['Overall %',      overallPct + '%'],
+    [''],
+    ['── PROGRESS BAR ──'],
+    [`[${filledBar}]  ${overallPct}%`],
+  ];
+  const wsDash = XLSX.utils.aoa_to_sheet(dashData);
+  wsDash['!cols'] = [{wch:22},{wch:30}];
+  // Bold the title cell
+  if (!wsDash['A1'].s) wsDash['A1'].s = {};
+  XLSX.utils.book_append_sheet(wb, wsDash, '📊 Dashboard');
+
+  /* ── Sheet 2: Daily Log ─────────────────────────────── */
+  const logHeaders = [
+    'Date','Day','Day #','Week','Month','Score','Score %',
+    ...HABITS.map(h => h.icon+' '+h.label),
+    'Notes'
+  ];
+  const logRows = entries.map(e => {
+    const sc  = calcScore(e);
+    const pct = Math.round(sc/TOTAL_HABITS*100);
+    const dn  = e.dayNum||0;
+    return [
+      e.date, e.day||'', dn,
+      Math.ceil(dn/7), Math.ceil(dn/30),
+      sc, pct+'%',
+      ...HABITS.map(h => e[h.key] ? '✓' : '✗'),
+      e.notes||''
+    ];
+  });
+  const wsLog = XLSX.utils.aoa_to_sheet([logHeaders, ...logRows]);
+  wsLog['!cols'] = [
+    {wch:12},{wch:12},{wch:7},{wch:7},{wch:7},{wch:7},{wch:8},
+    ...HABITS.map(()=>({wch:18})),
+    {wch:40}
+  ];
+  wsLog['!freeze'] = { xSplit:0, ySplit:1 };
+  XLSX.utils.book_append_sheet(wb, wsLog, '📅 Daily Log');
+
+  /* ── Sheet 3: Habit Stats ───────────────────────────── */
+  const hsHeaders = ['#','Icon','Habit','Completed','Total Days','Success %','Bar'];
+  const hsRows = (stats?.habitStats||[]).map((h,i) => {
+    const bar = '█'.repeat(Math.round(h.pct/100*20))+'░'.repeat(20-Math.round(h.pct/100*20));
+    return [i+1, h.icon, h.label, h.completed, h.total,
+            h.pct.toFixed(1)+'%', '['+bar+'] '+h.pct.toFixed(0)+'%'];
+  });
+  const wsHabits = XLSX.utils.aoa_to_sheet([hsHeaders, ...hsRows]);
+  wsHabits['!cols'] = [{wch:4},{wch:6},{wch:28},{wch:12},{wch:12},{wch:12},{wch:28}];
+  XLSX.utils.book_append_sheet(wb, wsHabits, '📋 Habit Stats');
+
+  /* ── Sheet 4: Weekly Summary ────────────────────────── */
+  const wkHeaders = ['Week','Date Range','Days Logged','Total Score','Max Score','Avg/Day','Score %','Perfect Days'];
+  const weekMap   = {};
+  entries.forEach(e => {
+    const wn = Math.ceil((e.dayNum||1)/7);
+    if (!weekMap[wn]) weekMap[wn]=[];
+    weekMap[wn].push(e);
+  });
+  const wkRows = Object.keys(weekMap).sort((a,b)=>+a-+b).map(wn => {
+    const we      = weekMap[wn];
+    const scores  = we.map(e=>calcScore(e));
+    const ts      = scores.reduce((a,b)=>a+b,0);
+    const maxS    = we.length*TOTAL_HABITS;
+    const pct     = Math.round(ts/maxS*100);
+    const perfect = scores.filter(s=>s===TOTAL_HABITS).length;
+    return [+wn, `${we[0].date} → ${we[we.length-1].date}`,
+            we.length, ts, maxS, (ts/we.length).toFixed(1), pct+'%', perfect];
+  });
+  const wsWeekly = XLSX.utils.aoa_to_sheet([wkHeaders, ...wkRows]);
+  wsWeekly['!cols'] = [{wch:6},{wch:26},{wch:12},{wch:12},{wch:12},{wch:10},{wch:10},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, wsWeekly, '📆 Weekly');
+
+  /* ── Sheet 5: Monthly Summary ───────────────────────── */
+  const mnHeaders = ['Month','Label','Days Logged','Total Score','Max Score','Avg/Day','Score %','Perfect','Failed'];
+  const monthMap  = {};
+  entries.forEach(e => {
+    const mn = Math.ceil((e.dayNum||1)/30);
+    if (!monthMap[mn]) monthMap[mn]=[];
+    monthMap[mn].push(e);
+  });
+  const mnRows = Object.keys(monthMap).sort((a,b)=>+a-+b).map(mn => {
+    const me      = monthMap[mn];
+    const scores  = me.map(e=>calcScore(e));
+    const ts      = scores.reduce((a,b)=>a+b,0);
+    const maxS    = me.length*TOTAL_HABITS;
+    const pct     = Math.round(ts/maxS*100);
+    return [+mn, MONTH_NAMES[mn-1]||'Month '+mn,
+            me.length, ts, maxS, (ts/me.length).toFixed(1), pct+'%',
+            scores.filter(s=>s===TOTAL_HABITS).length,
+            scores.filter(s=>s===0).length];
+  });
+  const wsMonthly = XLSX.utils.aoa_to_sheet([mnHeaders, ...mnRows]);
+  wsMonthly['!cols'] = [{wch:7},{wch:30},{wch:12},{wch:12},{wch:12},{wch:10},{wch:10},{wch:10},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, wsMonthly, '📅 Monthly');
+
+  /* ── Download ───────────────────────────────────────── */
+  XLSX.writeFile(wb, `Discipline_Tracker_${todayISO()}.xlsx`);
+  showToast('✅ Excel exported! 5 sheets: Dashboard, Daily Log, Habit Stats, Weekly, Monthly.', 'success', 5000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST NOTIFICATIONS
+═══════════════════════════════════════════════════════════ */
+function showToast(msg, type='success', duration=3500) {
+  const icons = { success:'✅', error:'❌', info:'ℹ️', warning:'⚠️' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:1.1rem;">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => {
+    t.style.animation = 'slideOut .3s ease forwards';
+    setTimeout(() => t.remove(), 300);
+  }, duration);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════════════ */
+function showModal(msg) {
+  document.getElementById('modalMsg').innerHTML = msg;
+  document.getElementById('confirmModal').classList.add('open');
+  return new Promise(res => { modalResolve = res; });
+}
+function closeModal(val) {
+  document.getElementById('confirmModal').classList.remove('open');
+  if (modalResolve) { modalResolve(val); modalResolve = null; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderRules();
+  renderDashboard();
+
+  // Set today's date in entry
+  document.getElementById('entry-date').value = todayISO();
+
+  // Keyboard shortcut: Ctrl+S to save
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey||e.metaKey) && e.key==='s') {
+      e.preventDefault();
+      if (document.getElementById('page-entry').classList.contains('active')) saveEntry();
+    }
+  });
+});
+</script>
+</body>
+</html>
